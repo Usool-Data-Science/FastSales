@@ -1,0 +1,5 @@
+1. To handing pending payment, just send the order_completed() to background_tasks in the create_order().
+2. To handle quantity update in the product after a successful order, send the quantity reduction through redis streams. This can be done as follow:
+-> Add event to stream after the order is completed in the payment service using the redis.xadd()
+-> The go to the inventory and activate the consumer, then run it separate in its own cli "python3 -m inventory.consumer"
+3. However incase of error e.g. a product has been purchased but it is not available, then you can check first if it is available in the consumer of inventory before deducting it's quantity, if not available, then send back an event stream from the inventory consumer to the payment consumer. But to simulate this, just ensure you create the order_refund key,val first, maybe you will copy redis.xadd('order_refund', order.dict(), '*') into the get single order route first then remove it later. So Now create an order for a product, immediately delete that product and then wait few seconds before you check the single order status, it should be refunded.
